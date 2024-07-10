@@ -1,94 +1,43 @@
-#include <Servo.h>
+// Define pins for the ultrasonic sensor
+const int trigPin = 9;
+const int echoPin = 8;
 
-Servo gripperServo;
-
-const int MOTOR_RIGHT_FORWARD = 3;
-const int MOTOR_LEFT_FORWARD = 5;
-const int MOTOR_LEFT_BACKWARD = 6;
-const int MOTOR_RIGHT_BACKWARD = 4;
-
-const int GRIPPER_PIN = 11;
-const int ECHO_PIN = 13;
-const int TRIG_PIN = 12;
+// Variables to store the duration and distance
+long duration;
+int distance;
 
 void setup() {
+  // Initialize the serial communication
   Serial.begin(9600);
   
-  pinMode(MOTOR_RIGHT_FORWARD, OUTPUT);
-  pinMode(MOTOR_LEFT_FORWARD, OUTPUT);
-  pinMode(MOTOR_LEFT_BACKWARD, OUTPUT);
-  pinMode(MOTOR_RIGHT_BACKWARD, OUTPUT);
+  // Set the trigPin as an OUTPUT
+  pinMode(trigPin, OUTPUT);
   
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
-  
-  gripperServo.attach(GRIPPER_PIN);
+  // Set the echoPin as an INPUT
+  pinMode(echoPin, INPUT);
 }
 
 void loop() {
-  // Motor and gripper test sequence
-  moveForward();
-  delay(2000);
-  moveBackward();
-  delay(2000);
-  turnLeft();
-  delay(2000);
-  turnRight();
-  delay(2000);
-
-  // Gripper control
-  gripperServo.write(0);  // Open position
-  delay(1000);
-  gripperServo.write(90); // Mid position
-  delay(1000);
-  gripperServo.write(180); // Close position
-  delay(1000);
-
-  // Ultrasonic sensor reading
-  long distance = measureDistance();
+  // Clear the trigPin by setting it LOW
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Trigger the sensor by setting the trigPin HIGH for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the echoPin, pulseIn() returns the duration (time) in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance in cm
+  distance = duration * 0.034 / 2;
+  
+  // Print the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.print(distance);
   Serial.println(" cm");
-  delay(500);
-}
-
-void moveForward() {
-  digitalWrite(MOTOR_LEFT_FORWARD, HIGH);
-  digitalWrite(MOTOR_RIGHT_FORWARD, HIGH);
-  digitalWrite(MOTOR_LEFT_BACKWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, LOW);
-}
-
-void moveBackward() {
-  digitalWrite(MOTOR_LEFT_FORWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_FORWARD, LOW);
-  digitalWrite(MOTOR_LEFT_BACKWARD, HIGH);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, HIGH);
-}
-
-void turnLeft() {
-  digitalWrite(MOTOR_LEFT_FORWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_FORWARD, HIGH);
-  digitalWrite(MOTOR_LEFT_BACKWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, LOW);
-}
-
-void turnRight() {
-  digitalWrite(MOTOR_LEFT_FORWARD, HIGH);
-  digitalWrite(MOTOR_RIGHT_FORWARD, LOW);
-  digitalWrite(MOTOR_LEFT_BACKWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, LOW);
-}
-
-long measureDistance() {
-  long duration, distance;
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  duration = pulseIn(ECHO_PIN, HIGH);
-  distance = (duration / 2) * 0.0343;
-  return distance;
+  
+  // Wait for a short period before the next measurement
+  delay(1000); // 1 second delay
 }
