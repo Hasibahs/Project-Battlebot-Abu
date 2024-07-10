@@ -1,12 +1,21 @@
 #include <Arduino.h>
 #include "globals.h"
 #include "initial.h"
+#include <Adafruit_NeoPixel.h>
+
+extern Adafruit_NeoPixel strip;
 
 void goForward() {
   analogWrite(MOTOR_RIGHT_FORWARD, motorSpeed);
   analogWrite(MOTOR_LEFT_FORWARD, motorSpeed);
   analogWrite(MOTOR_LEFT_BACKWARD, 0);
   analogWrite(MOTOR_RIGHT_BACKWARD, 0);
+  // Turn off LEDs
+  strip.setPixelColor(0, strip.Color(0, 0, 0)); // Left back off
+  strip.setPixelColor(1, strip.Color(0, 0, 0)); // Right back off
+  strip.setPixelColor(2, strip.Color(0, 0, 0)); // Right front off
+  strip.setPixelColor(3, strip.Color(0, 0, 0)); // Left front off
+  strip.show();
 }
 
 void turnLeft() {
@@ -14,6 +23,25 @@ void turnLeft() {
   analogWrite(MOTOR_LEFT_BACKWARD, motorSpeed);
   analogWrite(MOTOR_LEFT_FORWARD, 0);
   analogWrite(MOTOR_RIGHT_BACKWARD, 0);
+  // Indicate left turn
+  strip.setPixelColor(0, strip.Color(255, 0, 0)); 
+  strip.setPixelColor(3, strip.Color(255, 0, 0)); 
+  strip.setPixelColor(1, strip.Color(0, 0, 0));   
+  strip.setPixelColor(2, strip.Color(0, 0, 0));   
+  strip.show();
+}
+
+void turnRight() {
+  analogWrite(MOTOR_LEFT_FORWARD, motorSpeed);
+  analogWrite(MOTOR_RIGHT_BACKWARD, motorSpeed);
+  analogWrite(MOTOR_RIGHT_FORWARD, 0);
+  analogWrite(MOTOR_LEFT_BACKWARD, 0);
+  // Indicate right turn
+  strip.setPixelColor(1, strip.Color(0, 0, 255)); 
+  strip.setPixelColor(2, strip.Color(0, 0, 255)); 
+  strip.setPixelColor(0, strip.Color(0, 0, 0));   
+  strip.setPixelColor(3, strip.Color(0, 0, 0));   
+  strip.show();
 }
 
 void stopMotors() {
@@ -21,6 +49,12 @@ void stopMotors() {
   analogWrite(MOTOR_LEFT_FORWARD, 0);
   analogWrite(MOTOR_LEFT_BACKWARD, 0);
   analogWrite(MOTOR_RIGHT_BACKWARD, 0);
+  // Turn off LEDs
+  strip.setPixelColor(0, strip.Color(0, 0, 0)); 
+  strip.setPixelColor(1, strip.Color(0, 0, 0)); 
+  strip.setPixelColor(2, strip.Color(0, 0, 0)); 
+  strip.setPixelColor(3, strip.Color(0, 0, 0)); 
+  strip.show();
 }
 
 int getDistance() {
@@ -53,12 +87,21 @@ void controlGripper() {
     }
   }
   gripper.write(pos);
-  delay(15); 
+  delay(15);
+  
+  // Blink LEDs
+  static bool ledState = false;
+  ledState = !ledState;
+  for (int i = 0; i < NUM_PIXELS; i++) {
+    strip.setPixelColor(i, ledState ? strip.Color(255, 255, 255) : strip.Color(0, 0, 0));
+  }
+  strip.show();
 }
 
 void handleInitialPart() {
   int distance = getDistance();
-  
+
+  // Continuously check the distance and control the gripper
   while (distance <= obstacleDistance) {
     controlGripper(); 
     distance = getDistance(); 

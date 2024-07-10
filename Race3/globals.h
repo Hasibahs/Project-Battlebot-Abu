@@ -2,6 +2,13 @@
 #define GLOBALS_H
 
 #include <Servo.h>
+#include <Adafruit_NeoPixel.h>
+
+// Define the pin where the NeoPixel is connected
+#define LED_PIN 13
+
+// Define the number of NeoPixels
+#define NUM_PIXELS 4
 
 extern const int MOTOR_RIGHT_FORWARD;
 extern const int MOTOR_LEFT_FORWARD;
@@ -16,7 +23,6 @@ extern const int obstacleDistance;
 extern Servo gripper;
 extern bool initialPartFinished;
 
-
 extern const int SENSOR_PINS[8];
 extern int thresholds[8];
 extern const int BASE_SPEED;
@@ -25,5 +31,6 @@ extern const unsigned long BLACK_DETECTION_THRESHOLD;
 extern unsigned long blackDetectionStartTime;
 extern bool isDetectingBlack;
 extern Servo gripperServo;
+extern Adafruit_NeoPixel strip;
 
 #endif

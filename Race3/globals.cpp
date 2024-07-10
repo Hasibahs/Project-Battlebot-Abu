@@ -22,3 +22,4 @@ const unsigned long BLACK_DETECTION_THRESHOLD = 150;
 unsigned long blackDetectionStartTime = 0;
 bool isDetectingBlack = false;
 Servo gripperServo;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);

@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include "globals.h"
 #include "second.h"
+#include <Adafruit_NeoPixel.h>
+
+extern Adafruit_NeoPixel strip;
 
 long getDistanceSecondPart() {
   digitalWrite(trigPin, LOW);
@@ -48,6 +51,15 @@ void setMotors(int leftSpeed, int rightSpeed) {
   analogWrite(MOTOR_RIGHT_BACKWARD, max(0, -rightSpeed));
 }
 
+void blinkAllLEDs() {
+  static bool ledState = false;
+  ledState = !ledState;
+  for (int i = 0; i < NUM_PIXELS; i++) {
+    strip.setPixelColor(i, ledState ? strip.Color(255, 255, 255) : strip.Color(0, 0, 0));
+  }
+  strip.show();
+}
+
 void handleSecondPart() {
   static bool objectGrabbed = false;
 
@@ -71,6 +83,10 @@ void handleSecondPart() {
         gripper.write(135);  // Release the object at the end of line tracking
         objectGrabbed = false;
       }
+      while (true) {
+        blinkAllLEDs();
+        delay(500); 
+      }
       return;
     }
   } else {
@@ -91,6 +107,28 @@ void handleSecondPart() {
     leftSpeed = constrain(leftSpeed, 0, 255);
     rightSpeed = constrain(rightSpeed, 0, 255);
     setMotors(leftSpeed, rightSpeed);
+    
+    // LED indication for turns
+    if (leftSpeed < rightSpeed) {
+      // Indicate left turn
+      strip.setPixelColor(0, strip.Color(255, 0, 0)); 
+      strip.setPixelColor(3, strip.Color(255, 0, 0)); 
+      strip.setPixelColor(1, strip.Color(0, 0, 0));   
+      strip.setPixelColor(2, strip.Color(0, 0, 0));   
+    } else if (leftSpeed > rightSpeed) {
+      // Indicate right turn
+      strip.setPixelColor(1, strip.Color(0, 0, 255)); 
+      strip.setPixelColor(2, strip.Color(0, 0, 255)); 
+      strip.setPixelColor(0, strip.Color(0, 0, 0));   
+      strip.setPixelColor(3, strip.Color(0, 0, 0));   
+    } else {
+      // Going straight, turn off LEDs
+      strip.setPixelColor(0, strip.Color(0, 0, 0)); 
+      strip.setPixelColor(1, strip.Color(0, 0, 0)); 
+      strip.setPixelColor(2, strip.Color(0, 0, 0)); 
+      strip.setPixelColor(3, strip.Color(0, 0, 0)); 
+    }
+    strip.show();
   }
   
   long distance = getDistanceSecondPart();
