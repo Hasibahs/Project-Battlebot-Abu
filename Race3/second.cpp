@@ -49,6 +49,8 @@ void setMotors(int leftSpeed, int rightSpeed) {
 }
 
 void handleSecondPart() {
+  static bool objectGrabbed = false;
+
   int sensors = readSensors();
   Serial.print("Sensors: ");
   for (int i = 0; i < 8; i++) {
@@ -56,6 +58,7 @@ void handleSecondPart() {
     Serial.print(" ");
   }
   Serial.println();
+  
   if (sensors == 0b11111111) {
     if (!isDetectingBlack) {
       isDetectingBlack = true;
@@ -64,11 +67,16 @@ void handleSecondPart() {
     if (millis() - blackDetectionStartTime >= BLACK_DETECTION_THRESHOLD) {
       setMotors(0, 0);
       gripperServo.write(135);
+      if (objectGrabbed) {
+        gripper.write(135);  // Release the object at the end of line tracking
+        objectGrabbed = false;
+      }
       return;
     }
   } else {
     isDetectingBlack = false;
   }
+  
   if (sensors == 0b00000000) {
     setMotors(0, 0);
     gripperServo.write(135);
@@ -84,14 +92,16 @@ void handleSecondPart() {
     rightSpeed = constrain(rightSpeed, 0, 255);
     setMotors(leftSpeed, rightSpeed);
   }
+  
   long distance = getDistanceSecondPart();
   Serial.print("Distance: ");
   Serial.print(distance);
   Serial.println(" cm");
-  if (distance <= 4) {
-    gripperServo.write(70);
-  } else {
-    gripperServo.write(135);
+  
+  if (distance <= 4 && !objectGrabbed) {
+    gripper.write(70);  // Grab the object
+    objectGrabbed = true;
   }
+  
   delay(50);
 }

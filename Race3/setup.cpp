@@ -13,7 +13,5 @@ void setupPins() {
 
 void setupServos() {
   gripper.attach(servoPin);
-  gripperServo.attach(servoPin);
-  gripper.write(135);
-  gripperServo.write(135);
+  gripper.write(135); // neutral position
 }
